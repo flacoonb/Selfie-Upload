@@ -1,0 +1,9 @@
+title: "Selfie Upload für Photobooth"
+description: "Willkommen zur Dokumentation"
+theme: jekyll-theme-minimal
+
+# Navigation
+header_pages:
+  - index.md
+  - about.md
+  - installation.md
