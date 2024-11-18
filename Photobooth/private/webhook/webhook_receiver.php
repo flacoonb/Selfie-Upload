@@ -1,4 +1,17 @@
 <?php
+
+/*
+ * Teile dieses Codes stammen aus dem PhotoboothProject (https://github.com/PhotoboothProject/photobooth)
+ * und sind lizenziert unter der MIT-Lizenz.
+ * 
+ * Urheberrecht © 2024 PhotoboothProject Contributors.
+ * 
+ * Die MIT-Lizenz gestattet die Verwendung, Änderung und Verbreitung dieses Codes unter folgenden Bedingungen:
+ * - Der obige Urheberrechtsvermerk und dieser Genehmigungsvermerk müssen in allen Kopien oder wesentlichen Teilen der Software enthalten sein.
+ * 
+ * DIE SOFTWARE WIRD OHNE JEDE AUSDRÜCKLICHE ODER IMPLIZIERTE GARANTIE BEREITGESTELLT, EINSCHLIESSLICH DER GARANTIE DER MARKTGÄNGIGKEIT, DER EIGNUNG FÜR EINEN BESTIMMTEN ZWECK UND DER NICHTVERLETZUNG.
+ */
+
 // Log-Datei fÃ¼r das Webhook-Skript
 $logFile = '/var/log/webhook_receiver.log';
 $imageDirectory = '/var/www/html/private/images/uploads/';
