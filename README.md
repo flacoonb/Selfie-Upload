@@ -4,7 +4,7 @@
 
 # Selfie-Upload einrichten
 
-Diese Anleitung beschreibt, wie du das Selfie-Upload-System mit Webhooks auf einem Webserver und einer Photobooth einrichtest. Im Grunde wird eine im Internet verfügbare Website aufgerufen. Die Website enthält einen Button, um ein Foto zu erstellen. Dieses wird direkt nach der Aufnahme im Ordner Upload gespeichert. Ein Aufruf mittels Webhook zur Photobooth lädt das Bild auf die Photobooth, wird anschliessend bearbeitet und zur Galerie hinzugefügt. Die Photobooth sendet daraufhin ein Webhook an die Website, wo das gemachte Bild im Upload-Ordner gelöscht wird.  
+Diese Anleitung beschreibt, wie ein Selfie-Upload mit Webhooks auf einem externen Webserver (Internet) und einer Photobooth eingerichtet wird. Im Grunde wird eine im Internet verfügbare Website aufgerufen. Die Website enthält einen Button, um ein Foto zu erstellen. Dieses wird direkt nach der Aufnahme im Ordner Upload gespeichert. Ein Aufruf mittels Webhook zur Photobooth lädt das Bild auf die Photobooth, wird anschliessend bearbeitet und zur Galerie hinzugefügt. Die Photobooth sendet daraufhin ein Webhook an die Website, wo das gemachte Bild im Upload-Ordner gelöscht wird.  
 
 
 1. **A:** Ein Bild wird auf der Website erstellt und hochgeladen.
@@ -15,7 +15,8 @@ Diese Anleitung beschreibt, wie du das Selfie-Upload-System mit Webhooks auf ein
 
 ### Voraussetzungen
 Damit der Webhook korrekt funktioniert, müssen folgende Voraussetzungen erfüllt sein:
-- Eine funktionierende Internetverbindung zwischen der Website und der Photobooth.
+- Photobooth mit folgender Software: https://photoboothproject.github.io
+- Eine funktionierende Internetverbindung auf der Photobooth.
 - Der Webhook auf der Photobooth ist korrekt konfiguriert, um den Löschbefehl an die Website zu senden.
 - Die Datei- und Ordnerberechtigungen sind richtig gesetzt, damit der Upload und die Verarbeitung reibungslos funktionieren.
 
