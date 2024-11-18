@@ -1,4 +1,5 @@
-![Symbolbild für Selfie-Upload]([https://github.com/dein-username/dein-repo/raw/main/assets/photobooth-upload.png](https://raw.githubusercontent.com/flacoonb/Selfie-Upload/refs/heads/main/selfieupload.webp)
+![Symbolbild für Selfie-Upload](https://raw.githubusercontent.com/flacoonb/Selfie-Upload/refs/heads/main/selfieupload.webp)
+
 
 # Selfie-Upload einrichten
 
