@@ -1,0 +1,17 @@
+# _config.yml
+
+# Das Theme, das du verwenden möchtest
+theme: jekyll-theme-cayman
+
+# Beispiel einer Navigation
+menu:
+  - title: Home
+    url: /
+  - title: About
+    url: /about/
+  - title: Contact
+    url: /contact/
+
+# Optionale Einstellungen für deine Seite
+title: Meine Website
+description: Dies ist meine persönliche Website, die mit Jekyll erstellt wurde.
