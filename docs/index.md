@@ -1,53 +1,79 @@
-# Selfie-Upload für Photobooth
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Selfie-Upload für Photobooth</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            background-color: #f8f9fa;
+            margin: 0;
+            padding: 0;
+        }
+        header {
+            background: #343a40;
+            color: #fff;
+            padding: 1rem 0;
+            text-align: center;
+        }
+        section {
+            padding: 2rem;
+        }
+        footer {
+            text-align: center;
+            background: #343a40;
+            color: #fff;
+            padding: 1rem 0;
+            margin-top: 2rem;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Selfie-Upload für Photobooth</h1>
+        <p>Einfach, schnell, intuitiv</p>
+    </header>
+    
+    <section id="features">
+        <div class="container">
+            <h2>Funktionen</h2>
+            <ul>
+                <li>QR-Code-Integration</li>
+                <li>Webbasierter Upload</li>
+                <li>Automatische Galerie-Integration</li>
+                <li>Moderne Technologie</li>
+            </ul>
+        </div>
+    </section>
 
-Willkommen auf der offiziellen Seite des **Selfie-Upload-Projekts**! Dieses Projekt ermöglicht es, Bilder direkt von einem Smartphone zu einer Photobooth hochzuladen und die Galerie automatisch zu erweitern. 
+    <section id="how-it-works" class="bg-light">
+        <div class="container">
+            <h2>Anleitung</h2>
+            <ol>
+                <li>Scanne den QR-Code.</li>
+                <li>Mache ein Selfie oder wähle ein Bild aus deiner Galerie.</li>
+                <li>Das Bild wird automatisch hochgeladen und in die Galerie integriert.</li>
+            </ol>
+        </div>
+    </section>
 
----
+    <section id="installation">
+        <div class="container">
+            <h2>Installation</h2>
+            <p>Folge diesen Schritten, um das Selfie-Upload-Projekt zu installieren:</p>
+            <ol>
+                <li>Klone das Repository.</li>
+                <li>Konfiguriere den Webserver und die Photobooth.</li>
+                <li>Aktiviere Webhooks für die automatische Synchronisation.</li>
+            </ol>
+        </div>
+    </section>
 
-## Übersicht
-
-- [Funktionen](#funktionen)
-- [Anleitung](#anleitung)
-- [Installation](#installation)
-- [Technische Details](#technische-details)
-- [Sicherheitshinweise](#sicherheitshinweise)
-
----
-
-## Funktionen
-
-- **QR-Code-Integration**: Scanne den QR-Code, um die Upload-Seite direkt auf deinem Smartphone zu öffnen.
-- **Webbasierter Upload**: Mache ein Selfie oder wähle ein Bild aus deiner Galerie.
-- **Automatische Integration**: Lade das Bild in die Galerie der Photobooth hoch.
-- **Webhook-Unterstützung**: Synchronisiert Bilder zwischen Webserver und Photobooth in Echtzeit.
-- **Moderne Technologie**: Unterstützt aktuelle Browser und ist leicht zu konfigurieren.
-
----
-
-## Anleitung
-
-### 1. QR-Code scannen
-Scanne den bereitgestellten QR-Code mit deinem Smartphone, um die Upload-Seite zu öffnen.
-
-### 2. Selfie machen oder Bild hochladen
-- Nutze die Kamera deines Smartphones, um ein neues Foto zu machen.
-- Alternativ kannst du ein Bild aus deiner Galerie hochladen.
-
-### 3. Galerie aktualisieren
-Nach dem Upload wird das Bild automatisch von der Photobooth verarbeitet und in die Galerie integriert.
-
----
-
-## Installation
-
-### Voraussetzungen
-
-- **Photobooth-Software**: [Photobooth Project](https://photoboothproject.github.io).
-- **Externer Webserver** (z. B. Apache oder Nginx) mit PHP-Unterstützung.
-- **Netzwerkverbindung**: Zwischen Webserver und Photobooth, z. B. über fixe IP oder VPN.
-
-### Schritte zur Installation
-
-1. **Repository klonen**:
-   ```bash
-   git clone https://github.com/flacoonb/Selfie-Upload.git
+    <footer>
+        <p>&copy; 2024 Selfie-Upload Projekt</p>
+    </footer>
+</body>
+</html>
