@@ -1,9 +1,14 @@
-title: "Selfie Upload für Photobooth"
-description: "Willkommen zur Dokumentation"
+title: "Selfie-Upload Dokumentation"
+description: "Offizielle Dokumentation des Selfie-Upload-Projekts"
 theme: jekyll-theme-minimal
+baseurl: "/Selfie-Upload"  # Falls dein Repository so heißt
+repository: "https://github.com/flacoonb/Selfie-Upload"
 
 # Navigation
 header_pages:
   - index.md
-  - about.md
+  - features.md
   - installation.md
+  - usage.md
+  - license.md
+  - securitynotes.md  # Deine neue Seite mit Sicherheitshinweisen
