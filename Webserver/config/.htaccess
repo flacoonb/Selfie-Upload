@@ -1,0 +1,5 @@
+# Verhindert den externen Zugriff auf den Ordner und seine Dateien
+<Files *>
+    Order Allow,Deny
+    Deny from all
+</Files>
