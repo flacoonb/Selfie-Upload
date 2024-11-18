@@ -1,17 +1,9 @@
-# _config.yml
+title: "Selfie Upload für Photobooth"
+description: "Willkommen zur Dokumentation"
+theme: jekyll-theme-minimal
 
-# Das Theme, das du verwenden möchtest
-theme: jekyll-theme-cayman
-
-# Beispiel einer Navigation
-menu:
-  - title: Home
-    url: /
-  - title: About
-    url: /about/
-  - title: Contact
-    url: /contact/
-
-# Optionale Einstellungen für deine Seite
-title: Meine Website
-description: Dies ist meine persönliche Website, die mit Jekyll erstellt wurde.
+# Navigation
+header_pages:
+  - index.md
+  - about.md
+  - installation.md
