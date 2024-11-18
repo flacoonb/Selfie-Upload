@@ -14,33 +14,7 @@ plugins:
 sidebar:
   nav: "docs"  # Dies aktiviert die Sidebar-Navigation
 
-# Defaults for posts and pages
-defaults:
-  - scope:
-      path: ""
-      type: "posts"
-    values:
-      layout: "single"
-      author_profile: true
-      read_time: true
-
 # Navigation settings (Sidebar)
 collections:
   docs:
     output: true
-
-# Navigation links in the sidebar
-navigation:
-  docs:
-    - title: "Startseite"
-      url: "/Selfie-Upload/"
-    - title: "Funktionen"
-      url: "/Selfie-Upload/docs/features/"
-    - title: "Installation"
-      url: "/Selfie-Upload/docs/installation/"
-    - title: "Anleitung & Nutzung"
-      url: "/Selfie-Upload/docs/usage/"
-    - title: "Sicherheitshinweise"
-      url: "/Selfie-Upload/docs/securitynotes/"
-    - title: "Lizenz"
-      url: "/Selfie-Upload/docs/license/"
