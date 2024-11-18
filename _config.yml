@@ -1,20 +1,57 @@
+# Site settings
 title: "Selfie-Upload Dokumentation"
 description: "Offizielle Dokumentation des Selfie-Upload-Projekts"
-theme: jekyll-theme
-baseurl: "/Selfie-Upload/docs"  # Da du /docs als Quelle gewählt hast
-repository: "https://github.com/flacoonb/Selfie-Upload"
+baseurl: "/Selfie-Upload" # Passe dies an den Namen deines Repositories an
+url: "https://flacoonb.github.io" # Deine GitHub Pages URL
+repository: "flacoonb/Selfie-Upload" # Dein GitHub Repository
 
-# Sidebar Navigation
+# Theme settings
+remote_theme: "mmistakes/minimal-mistakes@4.24.0" # Verwende das Minimal Mistakes Theme
+plugins:
+  - jekyll-remote-theme # Dies wird benötigt, um Remote-Themes zu verwenden
+
+# Enable sidebar navigation
 sidebar:
-  - title: "Startseite"
-    url: "/Selfie-Upload/docs/"
-  - title: "Funktionen"
-    url: "/Selfie-Upload/docs/features.md"
-  - title: "Installation"
-    url: "/Selfie-Upload/docs/installation.md"
-  - title: "Anleitung & Nutzung"
-    url: "/Selfie-Upload/docs/usage.md"
-  - title: "Sicherheitshinweise"
-    url: "/Selfie-Upload/docs/securitynotes.md"
-  - title: "Lizenz"
-    url: "/Selfie-Upload/docs/license.md"
+  nav: "docs"  # Dies aktiviert die Sidebar-Navigation
+
+# Defaults for posts and pages
+defaults:
+  - scope:
+      path: ""
+      type: "posts"
+    values:
+      layout: "single"
+      author_profile: true
+      read_time: true
+
+# Navigation settings (Sidebar)
+collections:
+  docs:
+    output: true
+
+# Navigation links in the sidebar
+navigation:
+  docs:
+    - title: "Startseite"
+      url: "/Selfie-Upload/"
+    - title: "Funktionen"
+      url: "/Selfie-Upload/docs/features/"
+    - title: "Installation"
+      url: "/Selfie-Upload/docs/installation/"
+    - title: "Anleitung & Nutzung"
+      url: "/Selfie-Upload/docs/usage/"
+    - title: "Sicherheitshinweise"
+      url: "/Selfie-Upload/docs/securitynotes/"
+    - title: "Lizenz"
+      url: "/Selfie-Upload/docs/license/"
+
+# Social media links (optional)
+author:
+  name        : flacoonb
+  avatar      : "/assets/images/avatar.png" # Optionales Bild für das Profil
+  social:
+    github    : flacoonb
+    twitter   : your_twitter_handle_here
+
+# Other optional settings (for SEO, analytics, etc.)
+google_analytics: UA-XXXXXX-X # Optional, falls du Google Analytics verwenden möchtest
