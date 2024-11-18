@@ -44,14 +44,3 @@ navigation:
       url: "/Selfie-Upload/docs/securitynotes/"
     - title: "Lizenz"
       url: "/Selfie-Upload/docs/license/"
-
-# Social media links (optional)
-author:
-  name        : flacoonb
-  avatar      : "/assets/images/avatar.png" # Optionales Bild für das Profil
-  social:
-    github    : flacoonb
-    twitter   : your_twitter_handle_here
-
-# Other optional settings (for SEO, analytics, etc.)
-google_analytics: UA-XXXXXX-X # Optional, falls du Google Analytics verwenden möchtest
