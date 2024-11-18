@@ -1,13 +1,13 @@
 title: "Selfie-Upload Dokumentation"
 description: "Offizielle Dokumentation des Selfie-Upload-Projekts"
 theme: jekyll-theme-minimal
-baseurl: "/Selfie-Upload"  # Falls dein Repository so heißt
+baseurl: "/Selfie-Upload/docs"  # Da du /docs als Quelle gewählt hast
 repository: "https://github.com/flacoonb/Selfie-Upload"
 
 # Sidebar Navigation
 sidebar:
   - title: "Startseite"
-    url: "/Selfie-Upload/"
+    url: "/Selfie-Upload/docs/"
   - title: "Funktionen"
     url: "/Selfie-Upload/docs/features.md"
   - title: "Installation"
