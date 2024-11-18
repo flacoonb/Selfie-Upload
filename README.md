@@ -1,4 +1,4 @@
-<img src="https://raw.githubusercontent.com/flacoonb/Selfie-Upload/refs/heads/main/selfieupload.webp" alt="Symbolbild für Selfie-Upload" width="300">
+<img src="https://raw.githubusercontent.com/flacoonb/Selfie-Upload/refs/heads/main/selfieupload.webp" alt="Symbolbild für Selfie-Upload" width="600">
 
 
 
