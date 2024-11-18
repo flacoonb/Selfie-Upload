@@ -1,3 +1,5 @@
+![Symbolbild für Selfie-Upload]([https://github.com/dein-username/dein-repo/raw/main/assets/photobooth-upload.png](https://raw.githubusercontent.com/flacoonb/Selfie-Upload/refs/heads/main/selfieupload.webp)
+
 # Selfie-Upload einrichten
 
 Diese Anleitung beschreibt, wie du das Selfie-Upload-System mit Webhooks auf einem Webserver und einer Photobooth einrichtest. Im Grunde wird eine im Internet verfügbare Website aufgerufen. Die Website enthält einen Button, um ein Foto zu erstellen. Dieses wird direkt nach der Aufnahme im Ordner Upload gespeichert. Ein Aufruf mittels Webhook zur Photobooth lädt das Bild auf die Photobooth, wird anschliessend bearbeitet und zur Galerie hinzugefügt. Die Photobooth sendet daraufhin ein Webhook an die Website, wo das gemachte Bild im Upload-Ordner gelöscht wird.  
