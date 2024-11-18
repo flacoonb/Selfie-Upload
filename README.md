@@ -1,4 +1,5 @@
-![Symbolbild für Selfie-Upload](https://raw.githubusercontent.com/flacoonb/Selfie-Upload/refs/heads/main/selfieupload.webp)
+<img src="https://raw.githubusercontent.com/flacoonb/Selfie-Upload/refs/heads/main/selfieupload.webp" alt="Symbolbild für Selfie-Upload" width="300">
+
 
 
 # Selfie-Upload einrichten
