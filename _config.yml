@@ -4,11 +4,17 @@ theme: jekyll-theme-minimal
 baseurl: "/Selfie-Upload"  # Falls dein Repository so heißt
 repository: "https://github.com/flacoonb/Selfie-Upload"
 
-# Navigation
-header_pages:
-  - index.md
-  - features.md
-  - installation.md
-  - usage.md
-  - license.md
-  - securitynotes.md  # Deine neue Seite mit Sicherheitshinweisen
+# Sidebar Navigation
+sidebar:
+  - title: "Startseite"
+    url: "/Selfie-Upload/"
+  - title: "Funktionen"
+    url: "/Selfie-Upload/docs/features.md"
+  - title: "Installation"
+    url: "/Selfie-Upload/docs/installation.md"
+  - title: "Anleitung & Nutzung"
+    url: "/Selfie-Upload/docs/usage.md"
+  - title: "Sicherheitshinweise"
+    url: "/Selfie-Upload/docs/securitynotes.md"
+  - title: "Lizenz"
+    url: "/Selfie-Upload/docs/license.md"
