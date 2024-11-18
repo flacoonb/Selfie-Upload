@@ -1,0 +1,13 @@
+docs:
+  - title: "Startseite"
+    url: "/Selfie-Upload/docs/"
+  - title: "Funktionen"
+    url: "/Selfie-Upload/docs/features/"
+  - title: "Installation"
+    url: "/Selfie-Upload/docs/installation/"
+  - title: "Anleitung & Nutzung"
+    url: "/Selfie-Upload/docs/usage/"
+  - title: "Sicherheitshinweise"
+    url: "/Selfie-Upload/docs/securitynotes/"
+  - title: "Lizenz"
+    url: "/Selfie-Upload/docs/license/"
