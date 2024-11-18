@@ -58,7 +58,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         body {
             font-family: 'Verdana', sans-serif;
             background-color: #ffffff;
-            background-image: url('https://raw.githubusercontent.com/PhotoboothProject/photobooth/dev/resources/img/logo/banner.png');
+            background-image: url('https://raw.githubusercontent.com/flacoonb/Selfie-Upload/refs/heads/main/selfieupload.webp');
             background-repeat: no-repeat;
             background-size: cover;
             background-position: center;
