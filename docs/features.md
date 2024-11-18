@@ -1,13 +1,12 @@
 ---
-layout: default
+layout: single
 title: Funktionen
 ---
 
 ## Funktionen
 
-- **QR-Code-Integration**: Scanne den QR-Code, um die Upload-Seite direkt auf deinem Smartphone zu öffnen.
-- **Webbasierter Upload**: Mache ein Selfie oder wähle ein Bild aus deiner Galerie.
-- **Automatische Integration**: Lade das Bild in die Galerie der Photobooth hoch.
-- **Moderne Technologie**: Unterstützt moderne Browser und ist leicht zu integrieren.
+Hier sind einige der wichtigsten Funktionen des Projekts:
 
-[Zurück zur Startseite](index.md)
+- QR-Code Integration
+- Webbasierter Upload von Selfies oder Bildern aus der Galerie
+- Automatische Integration in die Photobooth-Galerie in Echtzeit.
