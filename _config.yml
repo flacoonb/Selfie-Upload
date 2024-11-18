@@ -1,6 +1,6 @@
 title: "Selfie-Upload Dokumentation"
 description: "Offizielle Dokumentation des Selfie-Upload-Projekts"
-theme: jekyll-theme-minimal
+theme: jekyll-theme
 baseurl: "/Selfie-Upload/docs"  # Da du /docs als Quelle gewählt hast
 repository: "https://github.com/flacoonb/Selfie-Upload"
 
