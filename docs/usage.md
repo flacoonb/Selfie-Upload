@@ -1,6 +1,3 @@
-#### **usage.md (Anleitung)**
-
-```markdown
 ---
 layout: default
 title: Anleitung & Nutzung
