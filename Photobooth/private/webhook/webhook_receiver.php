@@ -12,7 +12,8 @@
  * DIE SOFTWARE WIRD OHNE JEDE AUSDRÜCKLICHE ODER IMPLIZIERTE GARANTIE BEREITGESTELLT, EINSCHLIESSLICH DER GARANTIE DER MARKTGÄNGIGKEIT, DER EIGNUNG FÜR EINEN BESTIMMTEN ZWECK UND DER NICHTVERLETZUNG.
  */
 
-// Log-Datei fÃ¼r das Webhook-Skript
+<?php
+// Log-Datei für das Webhook-Skript
 $logFile = '/var/log/webhook_receiver.log';
 $imageDirectory = '/var/www/html/private/images/uploads/';
 
@@ -24,8 +25,12 @@ function logMessage($message) {
 
 // Funktion zur Bildausrichtung basierend auf Exif-Daten
 function fixImageOrientation($filename) {
-    $image = imagecreatefromjpeg($filename);
-    $exif = exif_read_data($filename);
+    $image = @imagecreatefromjpeg($filename);
+    if (!$image) {
+        logMessage("Fehler beim Laden der Bilddatei für Exif-Korrektur: $filename");
+        return;
+    }
+    $exif = @exif_read_data($filename);
     if (!empty($exif['Orientation'])) {
         switch ($exif['Orientation']) {
             case 3: $image = imagerotate($image, 180, 0); break;
@@ -38,10 +43,10 @@ function fixImageOrientation($filename) {
 }
 
 // Webhook-Daten empfangen und verarbeiten
-logMessage("Webhook-EmpfÃ¤nger gestartet");
+logMessage("Webhook-Empfänger gestartet");
 
 $data = file_get_contents("php://input");
-logMessage("Webhook-Daten empfangen: " . $data);
+logMessage("Webhook-Daten empfangen: " . ($data ?: 'Keine Daten empfangen'));
 
 $dataArray = json_decode($data, true);
 if (json_last_error() !== JSON_ERROR_NONE) {
@@ -62,14 +67,14 @@ $imageUrl = $dataArray['image_url'];
 $imageFileName = basename($imageUrl);
 $destination = $imageDirectory . $imageFileName;
 
-// Wiederholungsversuche fÃ¼r das Herunterladen des Bildes
+// Wiederholungsversuche für das Herunterladen des Bildes
 $maxRetries = 10;
 $retryDelay = 3;
 $attempt = 0;
 $imageData = false;
 
 while ($attempt < $maxRetries) {
-    $imageData = file_get_contents($imageUrl);
+    $imageData = @file_get_contents($imageUrl);
     if ($imageData !== false) {
         break;
     }
@@ -128,38 +133,33 @@ try {
     }
 
     $thumb_size = intval(substr($config['picture']['thumb_size'], 0, -2));
-    $imageHandler->resizeMaxWidth = $thumb_size;
-    $imageHandler->resizeMaxHeight = $thumb_size;
-    $thumbResource = $imageHandler->resizeImage($imageResource);
+    $thumbResource = $imageHandler->resizeImage($imageResource, $thumb_size);
     if (!$thumbResource instanceof \GdImage) {
         throw new \Exception('Fehler beim Erstellen der Thumbnail-Ressource.');
     }
 
     $imageHandler->jpegQuality = $config['jpeg_quality']['thumb'];
     if (!$imageHandler->saveJpeg($thumbResource, $filename_thumb)) {
-        $imageHandler->addErrorData('Warnung: Thumbnail konnte nicht erstellt werden.');
+        throw new \Exception("Fehler beim Speichern des Thumbnails: $filename_thumb.");
     }
 
-    if ($imageHandler->imageModified || ($config['jpeg_quality']['image'] >= 0 && $config['jpeg_quality']['image'] < 100)) {
-        $imageHandler->jpegQuality = $config['jpeg_quality']['image'];
-        if (!$imageHandler->saveJpeg($imageResource, $filename_photo)) {
-            throw new \Exception('Fehler beim Erstellen des Bildes.');
-        }
-    } else {
-        if (!copy($filename_tmp, $filename_photo)) {
-            throw new \Exception('Fehler beim Kopieren des Bildes.');
-        }
+    $imageHandler->jpegQuality = $config['jpeg_quality']['image'];
+    if (!$imageHandler->saveJpeg($imageResource, $filename_photo)) {
+        throw new \Exception("Fehler beim Speichern des Bildes: $filename_photo.");
     }
 
+    // Berechtigungen setzen
     $picture_permissions = $config['picture']['permissions'];
     if (!chmod($filename_photo, (int)octdec($picture_permissions))) {
-        $imageHandler->addErrorData('Warnung: Berechtigungen fÃ¼r Bild konnten nicht geÃ¤ndert werden.');
+        logMessage("Warnung: Berechtigungen für Bild konnten nicht geändert werden.");
     }
 
+    // Temporäre Datei löschen
     if (!unlink($filename_tmp)) {
-        $imageHandler->addErrorData('Warnung: TemporÃ¤re Datei konnte nicht gelÃ¶scht werden.');
+        logMessage("Warnung: Temporäre Datei konnte nicht gelöscht werden: $filename_tmp.");
     }
 
+    // Datenbank aktualisieren, falls aktiviert
     if ($config['database']['enabled']) {
         $database->appendContentToDB($imageNewName);
     }
@@ -172,11 +172,8 @@ try {
     exit;
 }
 
-// VerzÃ¶gerung vor dem Senden des LÃ¶sch-Webhook
-sleep(2);
-
-// LÃ¶sch-Webhook an die Website senden
-$deleteImageUrl = 'https://fotomat-sg.ch/test/delete_image.php';
+// Lösch-Webhook an die Website senden
+$deleteImageUrl = 'https://example.com/delete_image.php';
 $deleteData = json_encode(['file_path' => $imageUrl]);
 
 $contextOptions = [
@@ -188,15 +185,14 @@ $contextOptions = [
     ]
 ];
 $context = stream_context_create($contextOptions);
-$response = file_get_contents($deleteImageUrl, false, $context);
+$response = @file_get_contents($deleteImageUrl, false, $context);
 
-if ($response) {
-    logMessage("LÃ¶sch-Webhook erfolgreich gesendet, Antwort: " . $response);
+if ($response !== false) {
+    logMessage("Lösch-Webhook erfolgreich gesendet, Antwort: " . $response);
 } else {
     $error = error_get_last();
-    logMessage("Fehler beim Senden des LÃ¶sch-Webhooks: " . $error['message']);
+    logMessage("Fehler beim Senden des Lösch-Webhooks: " . ($error['message'] ?? 'Unbekannter Fehler'));
 }
 
 http_response_code(200);
 echo json_encode(['status' => 'success', 'message' => 'Bild erfolgreich empfangen und verarbeitet']);
-?>
