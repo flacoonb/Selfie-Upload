@@ -11,8 +11,6 @@
  * 
  * DIE SOFTWARE WIRD OHNE JEDE AUSDRÜCKLICHE ODER IMPLIZIERTE GARANTIE BEREITGESTELLT, EINSCHLIESSLICH DER GARANTIE DER MARKTGÄNGIGKEIT, DER EIGNUNG FÜR EINEN BESTIMMTEN ZWECK UND DER NICHTVERLETZUNG.
  */
-
-<?php
 // Log-Datei für das Webhook-Skript
 $logFile = '/var/log/webhook_receiver.log';
 $imageDirectory = '/var/www/html/private/images/uploads/';
