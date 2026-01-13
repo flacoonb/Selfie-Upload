@@ -271,24 +271,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         const spinner = document.getElementById('spinner');
 
         let busy = false;
-
-        async function tryFullscreen() {
-            try {
-                const el = document.documentElement;
-                if (el.requestFullscreen) {
-                    await el.requestFullscreen();
-                }
-            } catch (_) {
-                // ignorieren
-            }
-        }
-
-        snapButton.addEventListener('click', async () => {
+        snapButton.addEventListener('click', () => {
             if (busy) return;
             busy = true;
             snapButton.disabled = true;
 
-            await tryFullscreen();
 
             fileInput.value = '';
             fileInput.click();
