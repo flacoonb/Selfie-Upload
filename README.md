@@ -56,6 +56,22 @@ sudo chmod -R 755 /var/www/html/private/images/uploads
 
 ## Sicherheitshinweis
 
+### Empfohlene ENV-Variablen (ohne Secrets im Repo)
+
+Webserver (Selfie-Upload):
+- `SELFIE_BASE_URL` (z.B. `https://example.com/selfie-upload`)
+- `PHOTOBOOTH_WEBHOOK_URL` (Webhook-Empfänger auf der Photobooth)
+- `DELETE_IMAGE_WEBHOOK_URL` (öffentliche URL zu `delete_image.php`)
+- `SELFIE_WEBHOOK_TOKEN` (Shared Secret für Webhooks; Header `X-Webhook-Token`)
+- `MAX_UPLOAD_BYTES` (optional, Default 8MB)
+
+Photobooth:
+- `SELFIE_WEBHOOK_TOKEN` (muss identisch zum Webserver sein)
+- `SELFIE_UPLOAD_HOST` (Host der Upload-Website, z.B. `example.com`)
+- `DELETE_IMAGE_WEBHOOK_URL` bzw. `SELFIE_DELETE_WEBHOOK_URL` (Ziel für das Löschen auf dem Webserver)
+- `MAX_DOWNLOAD_BYTES` (optional, Default 8MB)
+
+
 Bitte beachte, dass der `uploads`-Ordner und die Webhook-URL Sicherheitsbedenken hervorrufen können. Es ist nicht sicher, die Photobooth über das Internet zugänglich zu machen. Achte auf folgende Punkte:
 
 - **Upload-Beschränkungen**: Stelle sicher, dass nur authentifizierte Benutzer Zugriff auf die Upload-Funktionalität haben, um Missbrauch zu verhindern.

@@ -1,0 +1,30 @@
+# Docroot-Härtung für Shared Hosting (Apache)
+Options -Indexes
+
+# Direkten Zugriff auf Config/ und Logs per HTTP blocken
+# (PHP kann die Dateien weiterhin per require/read verwenden.)
+
+# 1) Blocke /config/ via Rewrite (meist sehr kompatibel)
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteRule ^config/ - [F,L]
+
+  # Blocke typische Secrets/Configs/Backups
+  RewriteRule (^|/)(\.env|\.env\..*|composer\.(json|lock)|package(-lock)?\.json)$ - [F,L]
+  RewriteRule (^|/).*(\.bak|\.old|\.orig|\.save|~)$ - [F,L]
+</IfModule>
+
+# 2) Blocke Config-/Log-Dateien zusätzlich per FilesMatch
+<IfModule mod_authz_core.c>
+  <FilesMatch "(?i)^(config\.php|.*\.log)$">
+    Require all denied
+  </FilesMatch>
+</IfModule>
+
+# Für alte Apache-Versionen (falls mod_authz_core nicht greift)
+<IfModule !mod_authz_core.c>
+  <FilesMatch "(?i)^(config\.php|.*\.log)$">
+    Order allow,deny
+    Deny from all
+  </FilesMatch>
+</IfModule>
