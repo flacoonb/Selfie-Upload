@@ -1,0 +1,9 @@
+{
+  "name": "Selfie Upload",
+  "short_name": "Selfie",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#ffffff"
+}

@@ -1,0 +1,11 @@
+Options -Indexes
+
+# Verhindert PHP-Ausführung im Upload-Ordner (Apache)
+<FilesMatch "\.(php|phtml|phar)$">
+    Require all denied
+</FilesMatch>
+
+# Falls mod_php aktiv ist
+<IfModule mod_php.c>
+    php_flag engine off
+</IfModule>

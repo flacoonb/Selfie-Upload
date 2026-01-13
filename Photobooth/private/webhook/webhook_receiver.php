@@ -1,196 +1,343 @@
 <?php
 
-/*
- * Teile dieses Codes stammen aus dem PhotoboothProject (https://github.com/PhotoboothProject/photobooth)
- * und sind lizenziert unter der MIT-Lizenz.
- * 
- * Urheberrecht © 2024 PhotoboothProject Contributors.
- * 
- * Die MIT-Lizenz gestattet die Verwendung, Änderung und Verbreitung dieses Codes unter folgenden Bedingungen:
- * - Der obige Urheberrechtsvermerk und dieser Genehmigungsvermerk müssen in allen Kopien oder wesentlichen Teilen der Software enthalten sein.
- * 
- * DIE SOFTWARE WIRD OHNE JEDE AUSDRÜCKLICHE ODER IMPLIZIERTE GARANTIE BEREITGESTELLT, EINSCHLIESSLICH DER GARANTIE DER MARKTGÄNGIGKEIT, DER EIGNUNG FÜR EINEN BESTIMMTEN ZWECK UND DER NICHTVERLETZUNG.
- */
-// Log-Datei für das Webhook-Skript
-$logFile = '/var/log/webhook_receiver.log';
-$imageDirectory = '/var/www/html/private/images/uploads/';
+ini_set('display_errors', '0');
+ini_set('log_errors', '1');
+error_reporting(E_ALL);
 
-// Log-Funktion, um Nachrichten in die Log-Datei zu schreiben
-function logMessage($message) {
+$logFile = __DIR__ . '/webhook_receiver.log';
+
+function logMessage(string $message): void
+{
     global $logFile;
-    file_put_contents($logFile, date('Y-m-d H:i:s') . ' - ' . $message . "\n", FILE_APPEND);
+    @file_put_contents($logFile, date('Y-m-d H:i:s') . ' - ' . $message . "\n", FILE_APPEND);
 }
 
-// Funktion zur Bildausrichtung basierend auf Exif-Daten
-function fixImageOrientation($filename) {
-    $image = @imagecreatefromjpeg($filename);
-    if (!$image) {
-        logMessage("Fehler beim Laden der Bilddatei für Exif-Korrektur: $filename");
-        return;
+// Load config from a PHP file (no server config needed)
+$configFile = __DIR__ . '/webhook_config.php';
+$cfg = [];
+if (is_file($configFile)) {
+    $loaded = require $configFile;
+    if (is_array($loaded)) {
+        $cfg = $loaded;
     }
-    $exif = @exif_read_data($filename);
-    if (!empty($exif['Orientation'])) {
-        switch ($exif['Orientation']) {
-            case 3: $image = imagerotate($image, 180, 0); break;
-            case 6: $image = imagerotate($image, -90, 0); break;
-            case 8: $image = imagerotate($image, 90, 0); break;
-        }
-    }
-    imagejpeg($image, $filename, 90);
-    imagedestroy($image);
 }
 
-// Webhook-Daten empfangen und verarbeiten
-logMessage("Webhook-Empfänger gestartet");
+header('Content-Type: application/json; charset=utf-8');
 
-$data = file_get_contents("php://input");
-logMessage("Webhook-Daten empfangen: " . ($data ?: 'Keine Daten empfangen'));
+if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
+    http_response_code(405);
+    echo json_encode(['status' => 'error', 'message' => 'Method not allowed']);
+    exit;
+}
 
-$dataArray = json_decode($data, true);
+logMessage('Webhook-Empfänger gestartet');
+
+$expectedToken = (string)($cfg['SELFIE_WEBHOOK_TOKEN'] ?? '');
+if ($expectedToken !== '') {
+    $providedToken = (string)($_SERVER['HTTP_X_WEBHOOK_TOKEN'] ?? '');
+    if ($providedToken === '' || !hash_equals($expectedToken, $providedToken)) {
+        logMessage('Fehler: Ungültiger Webhook-Token');
+        http_response_code(401);
+        echo json_encode(['status' => 'error', 'message' => 'Unauthorized']);
+        exit;
+    }
+}
+
+$raw = file_get_contents('php://input');
+logMessage('Webhook-Daten empfangen: ' . ($raw ?: 'Keine Daten empfangen'));
+
+$data = json_decode($raw ?: '', true);
 if (json_last_error() !== JSON_ERROR_NONE) {
-    logMessage("Fehler: JSON-Daten konnten nicht dekodiert werden - " . json_last_error_msg());
-    http_response_code(500);
+    logMessage('Fehler: JSON-Daten konnten nicht dekodiert werden - ' . json_last_error_msg());
+    http_response_code(400);
     echo json_encode(['status' => 'error', 'message' => 'Fehlerhafte JSON-Daten']);
     exit;
 }
 
-if (!isset($dataArray['image_url'])) {
-    logMessage("Fehler: Keine Bild-URL erhalten.");
+$imageUrl = $data['image_url'] ?? null;
+if (!is_string($imageUrl) || trim($imageUrl) === '') {
+    logMessage('Fehler: Keine Bild-URL erhalten.');
     http_response_code(400);
     echo json_encode(['status' => 'error', 'message' => 'Keine Bild-URL erhalten']);
     exit;
 }
 
-$imageUrl = $dataArray['image_url'];
-$imageFileName = basename($imageUrl);
-$destination = $imageDirectory . $imageFileName;
+$parsed = parse_url($imageUrl);
+if (!is_array($parsed) || ($parsed['scheme'] ?? '') !== 'https' || empty($parsed['host']) || empty($parsed['path'])) {
+    logMessage('Fehler: Ungültige image_url: ' . $imageUrl);
+    http_response_code(400);
+    echo json_encode(['status' => 'error', 'message' => 'Ungültige Bild-URL']);
+    exit;
+}
 
-// Wiederholungsversuche für das Herunterladen des Bildes
-$maxRetries = 10;
-$retryDelay = 3;
+$allowedHost = (string)($cfg['SELFIE_UPLOAD_HOST'] ?? '');
+if ($allowedHost !== '' && strcasecmp($allowedHost, (string)$parsed['host']) !== 0) {
+    logMessage('Fehler: Host nicht erlaubt: ' . $parsed['host']);
+    http_response_code(403);
+    echo json_encode(['status' => 'error', 'message' => 'Host nicht erlaubt']);
+    exit;
+}
+
+if (strpos((string)$parsed['path'], '/uploads/') === false) {
+    logMessage('Fehler: Pfad nicht erlaubt: ' . $parsed['path']);
+    http_response_code(403);
+    echo json_encode(['status' => 'error', 'message' => 'Pfad nicht erlaubt']);
+    exit;
+}
+
+$imageFileName = basename((string)$parsed['path']);
+if ($imageFileName === '' || !preg_match('/\.(jpe?g)$/i', $imageFileName)) {
+    logMessage('Fehler: Dateiname/Endung nicht erlaubt: ' . $imageFileName);
+    http_response_code(400);
+    echo json_encode(['status' => 'error', 'message' => 'Dateityp nicht erlaubt']);
+    exit;
+}
+
+$imageDirectory = (string)($cfg['IMAGE_DIRECTORY'] ?? '/var/www/html/data/images/');
+if ($imageDirectory === '') {
+    $imageDirectory = '/var/www/html/data/images/';
+}
+if (substr($imageDirectory, -1) !== '/' && substr($imageDirectory, -1) !== DIRECTORY_SEPARATOR) {
+    $imageDirectory .= DIRECTORY_SEPARATOR;
+}
+
+if (!is_dir($imageDirectory)) {
+    @mkdir($imageDirectory, 0755, true);
+}
+
+$destination = $imageDirectory . $imageFileName;
+$maxDownloadBytes = (int)($cfg['MAX_DOWNLOAD_BYTES'] ?? (8 * 1024 * 1024));
+if ($maxDownloadBytes < 1) {
+    $maxDownloadBytes = 8 * 1024 * 1024;
+}
+
+$connectTimeout = (int)($cfg['DOWNLOAD_CONNECT_TIMEOUT_SECONDS'] ?? 10);
+if ($connectTimeout < 1) {
+    $connectTimeout = 1;
+}
+
+$timeout = (int)($cfg['DOWNLOAD_TIMEOUT_SECONDS'] ?? 30);
+if ($timeout < 1) {
+    $timeout = 1;
+}
+
+function downloadWithLimit(string $url, string $dest, int $maxBytes, int $connectTimeout, int $timeout): array
+{
+    $tmp = $dest . '.part';
+    $fp = @fopen($tmp, 'wb');
+    if ($fp === false) {
+        return [false, 'Temp-Datei konnte nicht erstellt werden'];
+    }
+
+    $ch = curl_init($url);
+    curl_setopt($ch, CURLOPT_FILE, $fp);
+    curl_setopt($ch, CURLOPT_FOLLOWLOCATION, false);
+    curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, $connectTimeout);
+    curl_setopt($ch, CURLOPT_TIMEOUT, $timeout);
+    curl_setopt($ch, CURLOPT_NOPROGRESS, false);
+    curl_setopt($ch, CURLOPT_XFERINFOFUNCTION, function ($resource, $downloadTotal, $downloaded, $uploadTotal, $uploaded) use ($maxBytes) {
+        if ($downloaded > $maxBytes) {
+            return 1;
+        }
+        return 0;
+    });
+
+    $ok = curl_exec($ch);
+    $httpCode = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $err = curl_error($ch);
+    curl_close($ch);
+    fclose($fp);
+
+    if ($ok === false || $httpCode < 200 || $httpCode >= 300) {
+        @unlink($tmp);
+        return [false, $err !== '' ? $err : ('HTTP ' . $httpCode)];
+    }
+
+    $size = @filesize($tmp);
+    if ($size === false || $size <= 0 || $size > $maxBytes) {
+        @unlink($tmp);
+        return [false, 'Downloadgröße ungültig/zu groß'];
+    }
+
+    if (!@rename($tmp, $dest)) {
+        @unlink($tmp);
+        return [false, 'Datei konnte nicht verschoben werden'];
+    }
+
+    return [true, ''];
+}
+
+function deriveDeleteWebhookUrlFromImageUrl(string $imageUrl): string
+{
+    $parsed = parse_url($imageUrl);
+    if (!is_array($parsed) || ($parsed['scheme'] ?? '') !== 'https' || empty($parsed['host']) || empty($parsed['path'])) {
+        return '';
+    }
+
+    $path = (string)$parsed['path'];
+    $pos = strpos($path, '/uploads/');
+    $basePath = $pos === false ? '' : substr($path, 0, $pos);
+
+    if ($basePath === '') {
+        $deletePath = '/delete_image.php';
+    } else {
+        $deletePath = rtrim($basePath, '/') . '/delete_image.php';
+    }
+
+    return 'https://' . $parsed['host'] . $deletePath;
+}
+
+
+function updatePhotoboothDb(string $dbFile, string $imageFileName): array
+{
+    if ($imageFileName === '') {
+        return [false, 'empty filename'];
+    }
+
+    $dir = dirname($dbFile);
+    if (!is_dir($dir)) {
+        @mkdir($dir, 0755, true);
+    }
+
+    $curr = [];
+    if (is_file($dbFile)) {
+        $raw = @file_get_contents($dbFile);
+        if (is_string($raw) && trim($raw) !== '') {
+            $decoded = json_decode($raw, true);
+            if (is_array($decoded)) {
+                $curr = $decoded;
+            }
+        }
+    }
+
+    if (!in_array($imageFileName, $curr, true)) {
+        $curr[] = $imageFileName;
+        $encoded = json_encode(array_values($curr));
+        if (!is_string($encoded) || $encoded == '') {
+            return [false, 'json encode failed'];
+        }
+        if (@file_put_contents($dbFile, $encoded) === false) {
+            return [false, 'write failed'];
+        }
+    }
+
+    return [true, ''];
+}
+
+function callDeleteWebhook(string $deleteUrl, string $token, string $filePath, int $connectTimeout, int $timeout): array
+{
+    $payload = json_encode(['file_path' => $filePath], JSON_UNESCAPED_SLASHES);
+    if (!is_string($payload) || $payload === '') {
+        return [false, 'JSON encode failed'];
+    }
+
+    $headers = ['Content-Type: application/json'];
+    if ($token !== '') {
+        $headers[] = 'X-Webhook-Token: ' . $token;
+    }
+
+    $ch = curl_init($deleteUrl);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_POST, true);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+    curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, $connectTimeout);
+    curl_setopt($ch, CURLOPT_TIMEOUT, $timeout);
+
+    $resp = curl_exec($ch);
+    $httpCode = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $err = curl_error($ch);
+    curl_close($ch);
+
+    if ($resp === false || $httpCode < 200 || $httpCode >= 300) {
+        $msg = $err !== '' ? $err : ('HTTP ' . $httpCode);
+        return [false, $msg];
+    }
+
+    return [true, ''];
+}
+
+$maxRetries = (int)($cfg['MAX_RETRIES'] ?? 2);
+if ($maxRetries < 1) {
+    $maxRetries = 1;
+}
+
+$retryDelay = (int)($cfg['RETRY_DELAY_SECONDS'] ?? 1);
+if ($retryDelay < 0) {
+    $retryDelay = 0;
+}
+
 $attempt = 0;
-$imageData = false;
+$lastError = '';
 
 while ($attempt < $maxRetries) {
-    $imageData = @file_get_contents($imageUrl);
-    if ($imageData !== false) {
+    [$ok, $err] = downloadWithLimit($imageUrl, $destination, $maxDownloadBytes, $connectTimeout, $timeout);
+    if ($ok) {
+        $lastError = '';
         break;
     }
-    logMessage("Bild nicht gefunden, erneuter Versuch in {$retryDelay} Sekunden... (Versuch: " . ($attempt + 1) . ")");
-    sleep($retryDelay);
+
+    $lastError = (string)$err;
+    logMessage('Download fehlgeschlagen, erneuter Versuch in ' . $retryDelay . ' Sekunden... (Versuch: ' . ($attempt + 1) . '), Fehler: ' . $lastError);
+    if ($retryDelay > 0) {
+        sleep($retryDelay);
+    }
     $attempt++;
 }
 
-if ($imageData === false) {
-    logMessage("Fehler: Bild konnte nach $maxRetries Versuchen nicht von URL geladen werden: $imageUrl");
-    http_response_code(500);
+if ($lastError !== '') {
+    logMessage('Fehler: Bild konnte nicht geladen werden: ' . $imageUrl . ' (' . $lastError . ')');
+    http_response_code(502);
     echo json_encode(['status' => 'error', 'message' => 'Bild konnte nicht geladen werden']);
     exit;
 }
 
-// Speichere das Bild im Zielverzeichnis
-if (file_put_contents($destination, $imageData) === false) {
-    logMessage("Fehler: Bild konnte nicht gespeichert werden: $destination");
-    http_response_code(500);
-    echo json_encode(['status' => 'error', 'message' => 'Bild konnte nicht gespeichert werden']);
-    exit;
-}
+logMessage('Bild erfolgreich heruntergeladen und gespeichert: ' . $destination);
 
-logMessage("Bild erfolgreich heruntergeladen und gespeichert: $destination");
-
-// Beginne die Weiterverarbeitung
-require_once '/var/www/html/lib/boot.php';
-
-use Photobooth\Image;
-use Photobooth\Enum\FolderEnum;
-use Photobooth\Service\DatabaseManagerService;
-use Photobooth\Service\LoggerService;
-
-$logger = LoggerService::getInstance()->getLogger('main');
-$logger->info("Verarbeite neues Bild: $destination");
-
-$imageHandler = new Image();
-$database = DatabaseManagerService::getInstance();
-
-try {
-    $imageNewName = Image::createNewFilename($config['picture']['naming']);
-    $filename_photo = FolderEnum::IMAGES->absolute() . DIRECTORY_SEPARATOR . $imageNewName;
-    $filename_tmp = FolderEnum::TEMP->absolute() . DIRECTORY_SEPARATOR . $imageNewName;
-    $filename_thumb = FolderEnum::THUMBS->absolute() . DIRECTORY_SEPARATOR . $imageNewName;
-
-    if (!copy($destination, $filename_tmp)) {
-        throw new \Exception("Fehler: Foto konnte nicht kopiert werden: $destination");
-    }
-
-    // Bildausrichtung basierend auf Exif-Daten korrigieren
-    fixImageOrientation($filename_tmp);
-
-    $imageResource = $imageHandler->createFromImage($filename_tmp);
-    if (!$imageResource instanceof \GdImage) {
-        throw new \Exception('Fehler beim Erstellen der Bildressource.');
-    }
-
-    $thumb_size = intval(substr($config['picture']['thumb_size'], 0, -2));
-    $thumbResource = $imageHandler->resizeImage($imageResource, $thumb_size);
-    if (!$thumbResource instanceof \GdImage) {
-        throw new \Exception('Fehler beim Erstellen der Thumbnail-Ressource.');
-    }
-
-    $imageHandler->jpegQuality = $config['jpeg_quality']['thumb'];
-    if (!$imageHandler->saveJpeg($thumbResource, $filename_thumb)) {
-        throw new \Exception("Fehler beim Speichern des Thumbnails: $filename_thumb.");
-    }
-
-    $imageHandler->jpegQuality = $config['jpeg_quality']['image'];
-    if (!$imageHandler->saveJpeg($imageResource, $filename_photo)) {
-        throw new \Exception("Fehler beim Speichern des Bildes: $filename_photo.");
-    }
-
-    // Berechtigungen setzen
-    $picture_permissions = $config['picture']['permissions'];
-    if (!chmod($filename_photo, (int)octdec($picture_permissions))) {
-        logMessage("Warnung: Berechtigungen für Bild konnten nicht geändert werden.");
-    }
-
-    // Temporäre Datei löschen
-    if (!unlink($filename_tmp)) {
-        logMessage("Warnung: Temporäre Datei konnte nicht gelöscht werden: $filename_tmp.");
-    }
-
-    // Datenbank aktualisieren, falls aktiviert
-    if ($config['database']['enabled']) {
-        $database->appendContentToDB($imageNewName);
-    }
-
-    $logger->info("Bild $destination erfolgreich verarbeitet.");
-
-} catch (\Exception $e) {
-    $logger->error('Fehler bei der Bildverarbeitung: ' . $e->getMessage());
-    echo json_encode(['status' => 'error', 'message' => 'Bildverarbeitung fehlgeschlagen']);
-    exit;
-}
-
-// Lösch-Webhook an die Website senden
-$deleteImageUrl = 'https://example.com/delete_image.php';
-$deleteData = json_encode(['file_path' => $imageUrl]);
-
-$contextOptions = [
-    'http' => [
-        'method' => 'POST',
-        'header' => "Content-Type: application/json\r\n",
-        'content' => $deleteData,
-        'timeout' => 120,
-    ]
-];
-$context = stream_context_create($contextOptions);
-$response = @file_get_contents($deleteImageUrl, false, $context);
-
-if ($response !== false) {
-    logMessage("Lösch-Webhook erfolgreich gesendet, Antwort: " . $response);
+// Ensure the image shows up in Photobooth gallery: store in data/images and update data/db.txt
+$dbFile = (string)($cfg['PHOTOBOOTH_DB_FILE'] ?? '/var/www/html/data/db.txt');
+[$dbOk, $dbErr] = updatePhotoboothDb($dbFile, $imageFileName);
+if ($dbOk) {
+    logMessage('Photobooth-DB aktualisiert: ' . $dbFile . ' +' . $imageFileName);
 } else {
-    $error = error_get_last();
-    logMessage("Fehler beim Senden des Lösch-Webhooks: " . ($error['message'] ?? 'Unbekannter Fehler'));
+    logMessage('Warnung: Photobooth-DB konnte nicht aktualisiert werden: ' . $dbFile . ' (' . (string)$dbErr . ')');
 }
+
+
+// Optional: tell Selfie-Upload to delete the original file after we successfully pulled it.
+$deleteWebhookUrl = (string)($cfg['DELETE_IMAGE_WEBHOOK_URL'] ?? ($cfg['SELFIE_DELETE_WEBHOOK_URL'] ?? ''));
+if ($deleteWebhookUrl === '') {
+    $deleteWebhookUrl = deriveDeleteWebhookUrlFromImageUrl($imageUrl);
+}
+
+if ($deleteWebhookUrl !== '') {
+    $deleteConnectTimeout = (int)($cfg['DELETE_CONNECT_TIMEOUT_SECONDS'] ?? 5);
+    if ($deleteConnectTimeout < 1) {
+        $deleteConnectTimeout = 1;
+    }
+
+    $deleteTimeout = (int)($cfg['DELETE_TIMEOUT_SECONDS'] ?? 10);
+    if ($deleteTimeout < 1) {
+        $deleteTimeout = 1;
+    }
+
+    [$deleteOk, $deleteErr] = callDeleteWebhook(
+        $deleteWebhookUrl,
+        (string)($cfg['SELFIE_WEBHOOK_TOKEN'] ?? ''),
+        $imageUrl,
+        $deleteConnectTimeout,
+        $deleteTimeout
+    );
+
+    if ($deleteOk) {
+        logMessage('Delete-Webhook erfolgreich aufgerufen: ' . $deleteWebhookUrl);
+    } else {
+        logMessage('Warnung: Delete-Webhook fehlgeschlagen: ' . $deleteWebhookUrl . ' (' . (string)$deleteErr . ')');
+    }
+} else {
+    logMessage('Hinweis: Kein Delete-Webhook konfiguriert/ableitbar; Original bleibt auf dem Selfie-Server.');
+}
+
 
 http_response_code(200);
-echo json_encode(['status' => 'success', 'message' => 'Bild erfolgreich empfangen und verarbeitet']);
+echo json_encode(['status' => 'success', 'message' => 'Bild erfolgreich empfangen']);
